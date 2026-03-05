@@ -19,13 +19,15 @@ export default async function handler(req: any, res: any) {
 
   try {
     const response = await genAI.models.generateContent({
-      model: "gemini-1.5-pro-latest",
+      model: "gemini-3-flash-preview",
       contents: [{ role: 'user', parts: [{ text: html }] }],
       config: { systemInstruction }
     });
 
-    res.status(200).json({ html: response.text.replace(/```html/g, '').replace(/```/g, '').trim() });
+    const improvedHtml = response.text.replace(/```html/g, '').replace(/```/g, '').trim();
+    res.status(200).json({ success: true, data: { html: improvedHtml } });
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    console.error("AI improvement error:", error);
+    res.status(200).json({ success: false, error: error.message || "AI improvement failed" });
   }
 }

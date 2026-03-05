@@ -7,8 +7,9 @@ export default async function handler(req: any, res: any) {
 
   try {
     const result = await generateWebsite(prompt, options);
-    res.status(200).json(result);
+    res.status(200).json({ success: true, data: result });
   } catch (error: any) {
-    res.status(500).json({ error: error.message });
+    console.error("AI generation error:", error);
+    res.status(200).json({ success: false, error: error.message || "AI generation failed" });
   }
 }

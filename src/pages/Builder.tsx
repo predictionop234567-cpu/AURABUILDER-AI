@@ -60,11 +60,24 @@ export default function Builder() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt, options: { brandName: currentProject?.name } })
       });
-      const data = await res.json();
-      if (data.error) throw new Error(data.error);
-      setHtml(data.html);
+      
+      const text = await res.text();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        console.error("Server returned invalid JSON:", text);
+        throw new Error("Server returned invalid response. Please try again.");
+      }
+
+      if (!data.success) {
+        throw new Error(data.error || 'AI generation failed');
+      }
+
+      setHtml(data.data.html);
       toast.success('Website generated!');
     } catch (error: any) {
+      console.error("AI generation error:", error);
       toast.error(error.message);
     } finally {
       setIsGenerating(false);
@@ -82,6 +95,7 @@ export default function Builder() {
       });
       toast.success('Project saved');
     } catch (error) {
+      console.error("Save error:", error);
       toast.error('Failed to save');
     }
   };
@@ -99,11 +113,24 @@ export default function Builder() {
           userId: user?.id 
         })
       });
-      const data = await res.json();
-      if (data.error) throw new Error(data.error);
-      setPublishedUrl(data.url);
+
+      const text = await res.text();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        console.error("Server returned invalid JSON:", text);
+        throw new Error("Server returned invalid response. Please try again.");
+      }
+
+      if (!data.success) {
+        throw new Error(data.error || 'Publishing failed');
+      }
+
+      setPublishedUrl(data.data.url);
       toast.success('Website published!');
     } catch (error: any) {
+      console.error("Publish error:", error);
       toast.error(error.message);
     } finally {
       setIsPublishing(false);
@@ -119,8 +146,8 @@ export default function Builder() {
             <ChevronLeft className="w-5 h-5" />
           </button>
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold">A</div>
-            <span className="font-bold tracking-tight hidden md:block">{currentProject?.name}</span>
+            <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold">N</div>
+            <span className="font-bold tracking-tight hidden md:block">{currentProject?.name || 'Untitled Website'}</span>
           </div>
         </div>
 

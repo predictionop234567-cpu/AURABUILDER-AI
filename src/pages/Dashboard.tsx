@@ -51,10 +51,10 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans">
-      <header className="bg-white border-bottom border-slate-200 px-8 py-4 flex items-center justify-between sticky top-0 z-10">
+      <header className="bg-white border-b border-slate-200 px-8 py-4 flex items-center justify-between sticky top-0 z-10">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold">A</div>
-          <span className="font-bold tracking-tight">AURABUILDER</span>
+          <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold">N</div>
+          <span className="font-bold tracking-tight">NEBULA FORGE</span>
         </div>
         <div className="flex items-center gap-4">
           <Link to="/settings" className="p-2 text-slate-500 hover:text-slate-900 transition-colors">

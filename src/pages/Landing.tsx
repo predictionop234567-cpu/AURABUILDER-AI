@@ -8,8 +8,8 @@ export default function Landing() {
     <div className="min-h-screen bg-white text-slate-900 font-sans">
       <nav className="flex items-center justify-between px-8 py-6 max-w-7xl mx-auto">
         <div className="flex items-center gap-2">
-          <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-bold text-xl">A</div>
-          <span className="text-xl font-bold tracking-tight">AURABUILDER AI</span>
+          <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-bold text-xl">N</div>
+          <span className="text-xl font-bold tracking-tight">NEBULA FORGE AI</span>
         </div>
         <div className="flex items-center gap-6">
           <Link to="/login" className="text-sm font-medium hover:text-indigo-600 transition-colors">Login</Link>
@@ -25,8 +25,8 @@ export default function Landing() {
             transition={{ duration: 0.6 }}
           >
             <h1 className="text-6xl md:text-8xl font-bold tracking-tighter mb-6 leading-[0.9]">
-              Build. Edit. Publish.<br />
-              <span className="text-indigo-600">Instantly.</span>
+              Nebula Forge AI.<br />
+              <span className="text-indigo-600">Build Instantly.</span>
             </h1>
             <p className="text-xl text-slate-500 max-w-2xl mx-auto mb-10">
               The next-gen AI website builder. Generate professional, production-ready websites in seconds with Gemini.

@@ -41,9 +41,9 @@ export default async function handler(req: any, res: any) {
       updated_at: new Date().toISOString()
     });
 
-    res.status(200).json({ url: publicUrl, publishId: publishRef.key });
+    res.status(200).json({ success: true, data: { url: publicUrl, publishId: publishRef.key } });
   } catch (error: any) {
     console.error('Publish error:', error);
-    res.status(500).json({ error: error.message });
+    res.status(200).json({ success: false, error: error.message || "Publishing failed" });
   }
 }
