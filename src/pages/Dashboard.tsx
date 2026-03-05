@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Plus, Layout, Globe, MoreVertical, Trash2, ExternalLink, Settings as SettingsIcon } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { db } from '../firebase/config';
-import { collection, addDoc, deleteDoc, doc } from 'firebase/firestore';
+import { ref, push, remove } from 'firebase/database';
 import toast from 'react-hot-toast';
 
 export default function Dashboard() {
@@ -19,16 +19,18 @@ export default function Dashboard() {
     if (!user) return;
     setIsCreating(true);
     try {
-      const docRef = await addDoc(collection(db, 'projects'), {
+      const projectsRef = ref(db, 'projects');
+      const newProjectRef = await push(projectsRef, {
         userId: user.id,
         name: 'Untitled Website',
         prompt: '',
         html: '<html><body><h1>New Website</h1></body></html>',
         settings_json: {},
         pages_json: [],
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
+        createdAt: Date.now()
       });
-      navigate(`/builder/${docRef.id}`);
+      navigate(`/builder/${newProjectRef.key}`);
     } catch (error) {
       toast.error('Failed to create project');
     } finally {
@@ -39,7 +41,7 @@ export default function Dashboard() {
   const handleDeleteProject = async (id: string) => {
     if (!confirm('Are you sure you want to delete this project?')) return;
     try {
-      await deleteDoc(doc(db, 'projects', id));
+      await remove(ref(db, `projects/${id}`));
       toast.success('Project deleted');
       fetchProjects();
     } catch (error) {

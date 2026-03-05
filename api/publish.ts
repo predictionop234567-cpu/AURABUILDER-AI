@@ -28,18 +28,20 @@ export default async function handler(req: any, res: any) {
       projectId,
       url: publicUrl,
       status: 'active',
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      publishedAt: Date.now()
     };
 
-    const publishRef = await adminDb.collection('publishes').add(publishData);
+    const publishRef = adminDb.ref('publishedSites').push();
+    await publishRef.set(publishData);
     
     // Also update project with publish URL
-    await adminDb.collection('projects').doc(projectId).update({
+    await adminDb.ref(`projects/${projectId}`).update({
       publishURL: publicUrl,
       updated_at: new Date().toISOString()
     });
 
-    res.status(200).json({ url: publicUrl, publishId: publishRef.id });
+    res.status(200).json({ url: publicUrl, publishId: publishRef.key });
   } catch (error: any) {
     console.error('Publish error:', error);
     res.status(500).json({ error: error.message });

@@ -13,13 +13,13 @@ export default async function handler(req: any, res: any) {
     }
 
     const usersSnap = await adminAuth.listUsers(1000);
-    const projectsSnap = await adminDb.collection('projects').count().get();
-    const publishesSnap = await adminDb.collection('publishes').count().get();
+    const projectsSnap = await adminDb.ref('projects').once('value');
+    const publishesSnap = await adminDb.ref('publishedSites').once('value');
 
     res.status(200).json({
       usersCount: usersSnap.users.length,
-      projectsCount: projectsSnap.data().count,
-      publishesCount: publishesSnap.data().count
+      projectsCount: projectsSnap.numChildren(),
+      publishesCount: publishesSnap.numChildren()
     });
   } catch (error: any) {
     res.status(500).json({ error: error.message });

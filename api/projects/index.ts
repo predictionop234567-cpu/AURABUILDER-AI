@@ -15,12 +15,17 @@ export default async function handler(req: any, res: any) {
 
   if (req.method === 'GET') {
     try {
-      const snapshot = await adminDb.collection('projects')
-        .where('userId', '==', user.uid)
-        .orderBy('updated_at', 'desc')
-        .get();
+      const snapshot = await adminDb.ref('projects')
+        .orderByChild('userId')
+        .equalTo(user.uid)
+        .once('value');
       
-      const projects = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const data = snapshot.val() || {};
+      const projects = Object.keys(data).map(key => ({ id: key, ...data[key] }));
+      
+      // Sort manually as RTDB doesn't support multiple orderings
+      projects.sort((a: any, b: any) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
+      
       return res.status(200).json(projects);
     } catch (error: any) {
       return res.status(500).json({ error: error.message });
@@ -38,11 +43,12 @@ export default async function handler(req: any, res: any) {
         settings_json: settings_json || {},
         pages_json: pages_json || [],
         updated_at: new Date().toISOString(),
-        createdAt: new Date().toISOString()
+        createdAt: Date.now()
       };
       
-      const docRef = await adminDb.collection('projects').add(projectData);
-      return res.status(200).json({ id: docRef.id, ...projectData });
+      const newProjectRef = adminDb.ref('projects').push();
+      await newProjectRef.set(projectData);
+      return res.status(200).json({ id: newProjectRef.key, ...projectData });
     } catch (error: any) {
       return res.status(500).json({ error: error.message });
     }

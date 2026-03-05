@@ -19,11 +19,11 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
-    const docRef = adminDb.collection('projects').doc(id);
-    const docSnap = await docRef.get();
+    const projectRef = adminDb.ref(`projects/${id}`);
+    const snapshot = await projectRef.once('value');
     
-    if (!docSnap.exists) return res.status(404).json({ error: 'Not found' });
-    const project = docSnap.data();
+    if (!snapshot.exists()) return res.status(404).json({ error: 'Not found' });
+    const project = snapshot.val();
     if (project?.userId !== user.uid) return res.status(403).json({ error: 'Forbidden' });
 
     const cloneData = {
@@ -34,11 +34,12 @@ export default async function handler(req: any, res: any) {
       settings_json: project.settings_json,
       pages_json: project.pages_json,
       updated_at: new Date().toISOString(),
-      createdAt: new Date().toISOString()
+      createdAt: Date.now()
     };
     
-    const cloneRef = await adminDb.collection('projects').add(cloneData);
-    res.status(200).json({ id: cloneRef.id, ...cloneData });
+    const cloneRef = adminDb.ref('projects').push();
+    await cloneRef.set(cloneData);
+    res.status(200).json({ id: cloneRef.key, ...cloneData });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }

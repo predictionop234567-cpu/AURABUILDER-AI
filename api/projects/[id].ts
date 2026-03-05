@@ -18,13 +18,13 @@ export default async function handler(req: any, res: any) {
 
   if (req.method === 'GET') {
     try {
-      const docSnap = await adminDb.collection('projects').doc(id).get();
-      if (!docSnap.exists) return res.status(404).json({ error: 'Not found' });
+      const snapshot = await adminDb.ref(`projects/${id}`).once('value');
+      if (!snapshot.exists()) return res.status(404).json({ error: 'Not found' });
       
-      const data = docSnap.data();
+      const data = snapshot.val();
       if (data?.userId !== user.uid) return res.status(403).json({ error: 'Forbidden' });
       
-      return res.status(200).json({ id: docSnap.id, ...data });
+      return res.status(200).json({ id: snapshot.key, ...data });
     } catch (error: any) {
       return res.status(500).json({ error: error.message });
     }
@@ -33,10 +33,10 @@ export default async function handler(req: any, res: any) {
   if (req.method === 'PUT') {
     const { name, prompt, html, settings_json, pages_json } = req.body;
     try {
-      const docRef = adminDb.collection('projects').doc(id);
-      const docSnap = await docRef.get();
-      if (!docSnap.exists) return res.status(404).json({ error: 'Not found' });
-      if (docSnap.data()?.userId !== user.uid) return res.status(403).json({ error: 'Forbidden' });
+      const projectRef = adminDb.ref(`projects/${id}`);
+      const snapshot = await projectRef.once('value');
+      if (!snapshot.exists()) return res.status(404).json({ error: 'Not found' });
+      if (snapshot.val()?.userId !== user.uid) return res.status(403).json({ error: 'Forbidden' });
 
       const updateData = {
         name,
@@ -47,7 +47,7 @@ export default async function handler(req: any, res: any) {
         updated_at: new Date().toISOString()
       };
       
-      await docRef.update(updateData);
+      await projectRef.update(updateData);
       return res.status(200).json({ id, ...updateData });
     } catch (error: any) {
       return res.status(500).json({ error: error.message });
@@ -56,12 +56,12 @@ export default async function handler(req: any, res: any) {
 
   if (req.method === 'DELETE') {
     try {
-      const docRef = adminDb.collection('projects').doc(id);
-      const docSnap = await docRef.get();
-      if (!docSnap.exists) return res.status(404).json({ error: 'Not found' });
-      if (docSnap.data()?.userId !== user.uid) return res.status(403).json({ error: 'Forbidden' });
+      const projectRef = adminDb.ref(`projects/${id}`);
+      const snapshot = await projectRef.once('value');
+      if (!snapshot.exists()) return res.status(404).json({ error: 'Not found' });
+      if (snapshot.val()?.userId !== user.uid) return res.status(403).json({ error: 'Forbidden' });
 
-      await docRef.delete();
+      await projectRef.remove();
       return res.status(200).json({ success: true });
     } catch (error: any) {
       return res.status(500).json({ error: error.message });

@@ -10,17 +10,17 @@ export default async function handler(req: any, res: any) {
     const decodedToken = await adminAuth.verifyIdToken(token);
     const uid = decodedToken.uid;
 
-    const profileSnap = await adminDb.collection('profiles').doc(uid).get();
-    const profile = profileSnap.exists ? profileSnap.data() : { id: uid, email: decodedToken.email, plan: 'free' };
+    const profileSnap = await adminDb.ref(`profiles/${uid}`).once('value');
+    const profile = profileSnap.exists() ? profileSnap.val() : { id: uid, email: decodedToken.email, plan: 'free' };
 
     const today = new Date().toISOString().split('T')[0];
-    const usageSnap = await adminDb.collection('usage_daily')
-      .where('userId', '==', uid)
-      .where('day', '==', today)
-      .limit(1)
-      .get();
+    const usageSnap = await adminDb.ref('usage_daily')
+      .orderByChild('userId_day')
+      .equalTo(`${uid}_${today}`)
+      .once('value');
 
-    const usage = !usageSnap.empty ? usageSnap.docs[0].data() : { generations_count: 0, publishes_count: 0 };
+    const usageData = usageSnap.val();
+    const usage = usageData ? Object.values(usageData)[0] : { generations_count: 0, publishes_count: 0 };
 
     res.status(200).json({ 
       profile, 

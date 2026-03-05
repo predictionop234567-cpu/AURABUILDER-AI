@@ -6,11 +6,13 @@ export default async function handler(req: any, res: any) {
   const { publishId, eventName, userId } = req.body;
 
   try {
-    await adminDb.collection('analytics_events').add({
+    const analyticsRef = adminDb.ref('analytics').push();
+    await analyticsRef.set({
       userId,
       publishId,
       eventName,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      timestamp: Date.now()
     });
 
     res.status(200).json({ success: true });

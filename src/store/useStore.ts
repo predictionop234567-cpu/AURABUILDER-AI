@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { auth, db } from '../firebase/config';
-import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
+import { ref, get, query, orderByChild, equalTo } from 'firebase/database';
 
 interface UserProfile {
   id: string;
@@ -31,7 +31,7 @@ interface AppState {
   logout: () => Promise<void>;
 }
 
-export const useStore = create<AppState>((set, get) => ({
+export const useStore = create<AppState>((set, getStore) => ({
   user: null,
   projects: [],
   currentProject: null,
@@ -40,21 +40,28 @@ export const useStore = create<AppState>((set, get) => ({
   setProjects: (projects) => set({ projects }),
   setCurrentProject: (project) => set({ currentProject: project }),
   fetchProjects: async () => {
-    const { user } = get();
+    const { user } = getStore();
     if (!user) return;
     set({ isLoading: true });
     try {
-      const q = query(
-        collection(db, 'projects'),
-        where('userId', '==', user.id),
-        orderBy('updated_at', 'desc')
-      );
-      const querySnapshot = await getDocs(q);
-      const projectsData = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as Project[];
-      set({ projects: projectsData });
+      const projectsRef = ref(db, 'projects');
+      const projectsQuery = query(projectsRef, orderByChild('userId'), equalTo(user.id));
+      const snapshot = await get(projectsQuery);
+      
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        const projectsData = Object.keys(data).map(key => ({
+          id: key,
+          ...data[key]
+        })) as Project[];
+        
+        // Sort manually by updated_at descending as RTDB doesn't support multiple orderings easily
+        projectsData.sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
+        
+        set({ projects: projectsData });
+      } else {
+        set({ projects: [] });
+      }
     } catch (error) {
       console.error('Error fetching projects:', error);
     } finally {

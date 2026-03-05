@@ -8,7 +8,7 @@ import {
 import Editor from '@monaco-editor/react';
 import { useStore } from '../store/useStore';
 import { db } from '../firebase/config';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { ref, get, update } from 'firebase/database';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -31,11 +31,11 @@ export default function Builder() {
     const fetchProject = async () => {
       if (!id) return;
       try {
-        const docRef = doc(db, 'projects', id);
-        const docSnap = await getDoc(docRef);
+        const projectRef = ref(db, `projects/${id}`);
+        const snapshot = await get(projectRef);
         
-        if (docSnap.exists()) {
-          const data = { id: docSnap.id, ...docSnap.data() } as any;
+        if (snapshot.exists()) {
+          const data = { id: snapshot.key, ...snapshot.val() } as any;
           setCurrentProject(data);
           setHtml(data.html || '');
           setPrompt(data.prompt || '');
@@ -74,8 +74,8 @@ export default function Builder() {
   const handleSave = async () => {
     if (!id) return;
     try {
-      const docRef = doc(db, 'projects', id);
-      await updateDoc(docRef, { 
+      const projectRef = ref(db, `projects/${id}`);
+      await update(projectRef, { 
         html, 
         prompt, 
         updated_at: new Date().toISOString() 
